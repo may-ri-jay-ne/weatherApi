@@ -5,10 +5,10 @@ require('./config/database');
  const PORT = 1119;
  const app = express();
 
- app.use = (express.json());
+ app.use(express.json());
 app.use(router)
 
  
- app.listen =(PORT, ()=>{
+ app.listen(PORT, ()=>{
     console.log(`Server is listening to PORT: ${PORT}`)
  })
