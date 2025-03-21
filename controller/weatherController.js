@@ -1,52 +1,60 @@
  const weatherModel = require('../model/weather')
  const axios = require('axios');
- const secret_key = process.env.weather_Api;
+ const weather_key = process.env.weather_Api;
 
  exports.getWeatherUpdate = async (req, res)=>{
     try {
         
-        const {city} = req.query;
-        const units = "metric"; 
-        const details = { q: city, appid:secret_key, units};
+        const {city} = req.query; 
+        const details = { q: city, appid:weather_key};
 
-        if (!city){
+        if (city === null){
             return res.status(404).json({
                 message: "City name is required"
             })
-        }
-        console.log(weatherData)
-        // http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
-        // https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
-        const response = await axios.post(`http://api.openweathermap.org/geo/1.0/direct?q= ${city} &appid= ${secret_key} $units = metric`);
+        };
+
+        if (weather_key === null){
+            return res.status(404).json({
+                message: "Invalid Api key"
+            })
+        };
+
+        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${weather_key}`);
         
-        const {name, main, weather, wind} = response.data;
-        
+        const {name, main, weather, wind, humidity, sys} = response.data;
+        console.log(response)
         const weatherData = {
-            city: `${name}, ${sys?.country}`,
-            temperture: main.temperature,
+            city: `${name}, ${sys.country}`,
+            temperature: main.temp,
             condition: weather[0].description,
             wind_speed: wind.speed,
             humidity: main.humidity
+        }
 
-        };
         const climate = new weatherModel(weatherData);
         await climate.save();
 
         res.status(200).json({
-            message: "Today's weather has been updated",
+            message: `The weather for: ${city}`,
             data:{
-                city: weatherData.city,
-                temperture: weatherData.temperture,
-                condition: weatherData.condition,
-                wind_speed: weatherData.wind_speed,
-                humidity: weatherData.humidity
+            city: `${name}, ${sys?.country}`,
+            temperature: main.temperature,
+            condition: weather[0].description,
+            wind_speed: wind.speed,
+            humidity: main.humidity
+                // city: weatherData.city,
+                // temperture: weatherData.temperture,
+                // condition: weatherData.condition,
+                // wind_speed: weatherData.wind_speed,
+                // humidity: weatherData.humidity
             },    
         });
 
     } catch (error) {
         console.log(error.message)
         res.status(500).json({
-            message: "Internal server error failed to get the"
+            message: "Internal server error failed to get the weather data"
         })
     }
  };
